@@ -24,21 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $connection = connectDatabase();
 
         $checkQuery = "SELECT id FROM users WHERE username = '$username' OR email = '$email'";
-        $checkResult = $connection->query($checkQuery);
+        $checkResult = runQueryOrDbError($connection, $checkQuery);
 
         if ($checkResult && $checkResult->num_rows > 0) {
             $errors[] = 'Username or email already exists.';
         } else {
             $insertQuery = "INSERT INTO users (username, password, full_name, email, balance) VALUES ('$username', '$password', '$fullName', '$email', 0.00)";
-            if ($connection->query($insertQuery)) {
-                $userId = $connection->insert_id;
-                $accountNumber = 'SA-' . str_pad((string)$userId, 6, '0', STR_PAD_LEFT);
-                $accountQuery = "INSERT INTO bank_accounts (user_id, account_name, account_number, balance) VALUES ($userId, 'Primary Savings', '$accountNumber', 0.00)";
-                $connection->query($accountQuery);
-                $success = 'Registration successful. You can now log in.';
-            } else {
-                $errors[] = 'Registration failed: ' . $connection->error;
-            }
+            runQueryOrDbError($connection, $insertQuery);
+
+            $userId = $connection->insert_id;
+            $accountNumber = 'SA-' . str_pad((string)$userId, 6, '0', STR_PAD_LEFT);
+            $accountQuery = "INSERT INTO bank_accounts (user_id, account_name, account_number, balance) VALUES ($userId, 'Primary Savings', '$accountNumber', 0.00)";
+            runQueryOrDbError($connection, $accountQuery);
+            $success = 'Registration successful. You can now log in.';
         }
     }
 }

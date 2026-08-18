@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $connection = connectDatabase();
         $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
-        $result = $connection->query($query);
+        $result = runQueryOrDbError($connection, $query);
 
         if ($result && $result->num_rows > 0) {
             $user = $result->fetch_assoc();
